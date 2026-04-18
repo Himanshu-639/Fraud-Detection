@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection System</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --background-color: #111827;
+            --card-bg: #1f2937;
+            --text-color: #f9fafb;
+            --border-color: #374151;
+            --input-bg: #374151;
+            --input-text: #ffffff;
+            --label-color: #9ca3af;
+        }
+
+        [data-theme="light"] {
+            --primary-color: #2563eb;
+            --background-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #111827;
+            --border-color: #e5e7eb;
+            --input-bg: #ffffff;
+            --input-text: #111827;
+            --label-color: #4b5563;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Banner Styles */
+        .banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 15px 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .banner-left h2 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--primary-color);
+        }
+
+        .banner-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Theme Toggle Wrapper */
+        .theme-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            user-select: none;
+            transition: color 0.3s;
+        }
+
+        /* Toggle Switch */
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* GitHub Icon */
+        .github-link {
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            transition: color 0.3s;
+        }
+
+        .github-link:hover {
+            color: var(--primary-color);
+        }
+
+        .github-link svg {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 40px 20px;
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+        .view-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards Menu */
+        .menu-container {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .menu-container h2 {
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .card svg {
+            width: 60px;
+            height: 60px;
+            stroke: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .card p {
+            color: var(--label-color);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* Common Buttons */
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--label-color);
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: none;
+        }
+
+        /* Batch Analysis UI */
+        .batch-container {
+            max-width: 1000px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 50px 20px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.02);
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-zone svg {
+            width: 50px;
+            height: 50px;
+            stroke: var(--label-color);
+            margin-bottom: 15px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 400px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--background-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .analyze-btn {
+            margin: 0;
+            padding: 10px 20px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+        }
+        .status-fraud-badge { background-color: rgba(185, 28, 28, 0.1); color: #ef4444; border: 1px solid #ef4444; }
+        .status-safe-badge { background-color: rgba(21, 128, 61, 0.1); color: #10b981; border: 1px solid #10b981; }
+        .status-pending { background-color: rgba(107, 114, 128, 0.1); color: #9ca3af; border: 1px solid #9ca3af; }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px;
+            transition: background-color 0.3s;
+        }
+
+        .container h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--label-color);
+        }
+
+        input, select {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.3s, color 0.3s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .fraud {
+            background-color: rgba(185, 28, 28, 0.1); 
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .safe {
+            background-color: rgba(21, 128, 61, 0.1);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+        
+        @media (max-width: 600px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .banner {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="banner">
+        <div class="banner-left">
+            <h2>Fraud Transaction Detection</h2>
+        </div>
+        <div class="banner-right">
+            <a href="https://github.com/Himanshu-639" target="_blank" class="github-link" title="Visit GitHub">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                </svg>
+            </a>
+            <div class="theme-toggle-wrapper">
+                <span id="theme-text" class="theme-text">Dark Mode</span>
+                <label class="theme-switch" for="themeToggle" title="Toggle Dark/Light Mode">
+                    <input type="checkbox" id="themeToggle">
+                    <div class="slider"></div>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <!-- Home Menu Container -->
+        <div id="homeMenu" class="menu-container view-section active">
+            <h2>Select Analysis Mode</h2>
+            <div class="card-grid">
+                <!-- Single Transaction Card -->
+                <div class="card" onclick="showView('singleForm')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <h3>Transaction Analysis Form</h3>
+                    <p>Manually enter specific details for a single transaction to immediately check for fraud probability.</p>
+                </div>
+                
+                <!-- Batch Transaction Card -->
+                <div class="card" onclick="showView('batchForm')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2-2.4-3.5-4.4-3.5h-1.2c-.7-3-3.2-5.2-6.2-5.6-3-.3-5.9 1.3-7.3 4-1.2 2.5-1 6.5.5 8.8m8.7-1.6V21"></path>
+                        <polyline points="16 16 12 12 8 16"></polyline>
+                    </svg>
+                    <h3>Transaction Sheet Analysis</h3>
+                    <p>Upload a CSV file of transactions to analyze and securely process large batches of data at once.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Transaction Analysis View -->
+        <div id="singleForm" class="container view-section">
+            <button class="back-btn" onclick="showView('homeMenu')">&larr; Back to Options</button>
+            <h1>Transaction Analysis Form</h1>
+            
+            <form id="fraudForm">
+                <div class="form-group">
+                    <label for="amount">Transaction Amount ($)</label>
+                    <input type="number" step="1" id="amount" min="1" name="amount" required placeholder="e.g. 5000">
+                </div>
+
+                <div class="form-group">
+                    <label for="type_txn">Transaction Type</label>
+                    <select id="type_txn" name="type_txn" required>
+                        <option value="" disabled selected>Select Type</option>
+                        <option value="CASH_IN">Cash In</option>
+                        <option value="CASH_OUT">Cash Out</option>
+                        <option value="DEBIT">Debit</option>
+                        <option value="PAYMENT">Payment</option>
+                        <option value="TRANSFER">Transfer</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="recency_hours">Recency (Hours since last txn)</label>
+                    <input type="number" step="1" id="recency_hours" name="recency_hours" required placeholder="-1 for first txn" min="-1">
+                </div>
+
+                <div class="form-group">
+                    <label for="txn_count_24hr">Transaction Count (Last 24h)</label>
+                    <input type="number" id="txn_count_24hr" name="txn_count_24hr" required placeholder="e.g. 3" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="hours_of_day">Hour of Day (0-23)</label>
+                    <input type="number" min="0" max="23" id="hours_of_day" name="hours_of_day" required placeholder="e.g. 14">
+                </div>
+
+                <div class="form-group">
+                    <label for="is_dest_new">Is Destination Account New?</label>
+                    <select id="is_dest_new" name="is_dest_new" required>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="oldbalanceOrg">Originator Old Balance</label>
+                    <input type="number" step="1" id="oldbalanceOrg" name="oldbalanceOrg" required placeholder="50" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="newbalanceOrig">Originator New Balance</label>
+                    <input type="number" step="1" id="newbalanceOrig" name="newbalanceOrig" required placeholder="40" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="oldbalanceDest">Destination Old Balance</label>
+                    <input type="number" step="1" id="oldbalanceDest" name="oldbalanceDest" required placeholder="20" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="newbalanceDest">Destination New Balance</label>
+                    <input type="number" step="1" id="newbalanceDest" name="newbalanceDest" required placeholder="30" min="0">
+                </div>
+
+                <div class="form-group full-width">
+                    <button type="submit">Analyze Transaction</button>
+                </div>
+            </form>
+
+            <div id="result"></div>
+        </div>
+
+        <!-- Batch Transaction Analysis View -->
+        <div id="batchForm" class="container view-section batch-container">
+            <button class="back-btn" onclick="showView('homeMenu')">&larr; Back to Options</button>
+            <h1>Transaction Sheet Analysis</h1>
+            
+            <div class="upload-zone" id="dropZone">
+                <input type="file" id="csvFile" accept=".csv">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Drag and drop your CSV file here, or click to browse files</p>
+                <div style="font-size: 12px; color: var(--label-color); margin-top: 10px;">Format: amount, type_txn, recency_hours, txn_count_24hr, hours_of_day, is_dest_new, oldbalanceOrg, newbalanceOrig, oldbalanceDest, newbalanceDest</div>
+            </div>
+
+            <div id="tableContainer" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Uploaded Data Preview</h3>
+                    <button id="analyzeBatchBtn" class="analyze-btn">Analyze All Rows</button>
+                </div>
+                
+                <!-- Batch Summary Logic -->
+                <div id="batchSummary" style="display: none; margin-bottom: 20px; padding: 15px; border-radius: 8px; background-color: var(--input-bg); border: 1px solid var(--border-color); text-align: center; font-size: 16px;"></div>
+                
+                <div class="table-wrapper">
+                    <table id="csvTable">
+                        <thead>
+                            <tr id="tableHeaders"></tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const themeText = document.getElementById('theme-text');
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            themeToggle.checked = true;
+            themeText.textContent = 'Light Mode';
+        }
+
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                themeText.textContent = 'Light Mode';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeText.textContent = 'Dark Mode';
+            }
+        });
+
+        // View Navigation Logic
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // Original Single Form Logic
+        document.getElementById('fraudForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            const formData = new FormData(e.target);
+            const transactionData = Object.fromEntries(formData.entries());
+
+            const numericFields = [
+                'amount', 'recency_hours', 'txn_count_24hr', 'hours_of_day', 
+                'oldbalanceOrg', 'newbalanceOrig', 'oldbalanceDest', 'newbalanceDest'
+            ];
+            
+            numericFields.forEach(field => {
+                transactionData[field] = parseFloat(transactionData[field]);
+            });
+            transactionData['is_dest_new'] = parseInt(transactionData['is_dest_new']);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(transactionData)
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                console.log(`API Response Time: ${data.processing_time_ms} ms`);
+                displayResult(data.is_fraud, data.probability);
+            } catch (error) {
+                console.error('Error connecting to API:', error);
+                alert("Failed to connect to the backend API. Is FastAPI running on port 8000?");
+            }
+        });
+
+        function displayResult(isFraud, probability) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = ''; 
+
+            const percentStr = (probability * 100).toFixed(2) + '%';
+            if (isFraud) {
+                resultDiv.classList.add('fraud');
+                resultDiv.innerHTML = `ALERT: Fraud Transaction Detected! (Risk Probability: ${percentStr})`;
+            } else {
+                resultDiv.classList.add('safe');
+                resultDiv.innerHTML = `Transaction Approved. (Risk Probability: ${percentStr})`;
+            }
+        }
+
+        // Batch Form/CSV Logic
+        const csvFileInput = document.getElementById('csvFile');
+        const uploadZone = document.getElementById('dropZone');
+        const tableContainer = document.getElementById('tableContainer');
+        const tableHeaders = document.getElementById('tableHeaders');
+        const tableBody = document.getElementById('tableBody');
+        const analyzeBatchBtn = document.getElementById('analyzeBatchBtn');
+        
+        let parsedData = [];
+        let currentCsvFile = null; // Store the actual file to send to backend
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        uploadZone.addEventListener('dragover', () => uploadZone.classList.add('dragover'));
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+
+        uploadZone.addEventListener('drop', (e) => {
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+
+        csvFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if(!file.name.endsWith('.csv')) {
+                alert("Please upload a valid CSV file.");
+                return;
+            }
+            currentCsvFile = file;
+            const reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function(e) {
+                processCSV(e.target.result);
+            }
+        }
+
+        function processCSV(text) {
+            const lines = text.trim().split('\n');
+            if(lines.length < 2) return;
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            parsedData = [];
+
+            // Hide summary if it was previously visible
+            const batchSummary = document.getElementById('batchSummary');
+            if (batchSummary) batchSummary.style.display = 'none';
+
+            // Display headers
+            tableHeaders.innerHTML = '';
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                tableHeaders.appendChild(th);
+            });
+            // Add column for results
+            const resultTh = document.createElement('th');
+            resultTh.textContent = "Prediction Result";
+            tableHeaders.appendChild(resultTh);
+
+            // Process data rows
+            tableBody.innerHTML = '';
+            for(let i=1; i<lines.length; i++) {
+                if(!lines[i].trim()) continue;
+                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                
+                let rowObj = {};
+                const tr = document.createElement('tr');
+
+                headers.forEach((h, index) => {
+                    rowObj[h] = values[index] || '';
+                    const td = document.createElement('td');
+                    td.textContent = values[index] || '';
+                    tr.appendChild(td);
+                });
+                
+                rowObj._rowIndex = i - 1; // track index internally
+                parsedData.push(rowObj);
+
+                const resultTd = document.createElement('td');
+                resultTd.innerHTML = '<span class="status-badge status-pending" id="result-status-' + rowObj._rowIndex + '">Pending Analysis</span>';
+                tr.appendChild(resultTd);
+                
+                tableBody.appendChild(tr);
+            }
+
+            if(parsedData.length > 0) {
+                tableContainer.style.display = 'block';
+            }
+        }
+
+        // Batch Predict calls the new /predict_batch endpoint
+        analyzeBatchBtn.addEventListener('click', async () => {
+            if(parsedData.length === 0 || !currentCsvFile) return;
+            
+            analyzeBatchBtn.disabled = true;
+            analyzeBatchBtn.textContent = 'Analyzing...';
+            
+            // Show pending logic in the UI
+            parsedData.forEach(row => {
+                const statusSpan = document.getElementById('result-status-' + row._rowIndex);
+                if (statusSpan) {
+                    statusSpan.textContent = "Analyzing...";
+                    statusSpan.className = "status-badge status-pending";
+                }
+            });
+
+            try {
+                // Send the raw CSV file to our batch endpoint
+                const formData = new FormData();
+                formData.append('file', currentCsvFile);
+
+                const response = await fetch('/predict_batch', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if(!response.ok) throw new Error('API Error');
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    throw new Error(data.error);
+                }
+
+                let fraudCount = 0;
+                let safeCount = 0;
+
+                // Update UI concurrently from the response JSON
+                data.results.forEach((res, i) => {
+                    const row = parsedData[i];
+                    if (!row) return; // In case length doesn't match perfectly
+                    const statusSpan = document.getElementById('result-status-' + row._rowIndex);
+                    
+                    if(res.is_fraud) {
+                        fraudCount++;
+                        statusSpan.textContent = `Fraud Alert (${(res.probability*100).toFixed(1)}%)`;
+                        statusSpan.className = "status-badge status-fraud-badge";
+                    } else {
+                        safeCount++;
+                        statusSpan.textContent = `Approved (${(res.probability*100).toFixed(1)}%)`;
+                        statusSpan.className = "status-badge status-safe-badge";
+                    }
+                });
+
+                // Display the final summary
+                const batchSummary = document.getElementById('batchSummary');
+                batchSummary.style.display = 'block';
+                batchSummary.innerHTML = `<strong>Analysis Complete:</strong> <span style="color: #ef4444; font-weight: bold; margin-left: 10px;">${fraudCount} Fraud Detected</span> <span style="color: var(--text-color); margin: 0 10px;">|</span> <span style="color: #10b981; font-weight: bold;">${safeCount} Approved</span>`;
+
+                console.log(`Successfully batched processed in: ${data.processing_time_ms} ms`);
+                
+            } catch(error) {
+                console.error("Batch error", error);
+                // Mark all failed gracefully
+                parsedData.forEach(row => {
+                    const statusSpan = document.getElementById('result-status-' + row._rowIndex);
+                    if (statusSpan) {
+                        statusSpan.textContent = "Failed";
+                        statusSpan.className = "status-badge status-fraud-badge"; // red
+                    }
+                });
+            }
+
+            analyzeBatchBtn.disabled = false;
+            analyzeBatchBtn.textContent = 'Analyze All Rows';
+        });
+    </script>
+</body>
+</html>
