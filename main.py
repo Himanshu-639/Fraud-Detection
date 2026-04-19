@@ -100,7 +100,7 @@ async def predict_fraud(transaction: TransactionInput):
 
     summary = None
 
-    if probability > 0.75:
+    if probability > 0.55:
         prompt = f"""You are a fraud detection analyst. Analyze this transaction and provide a clear, professional summary.
 
 ANALYSIS RESULTS:
