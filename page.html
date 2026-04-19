@@ -662,14 +662,15 @@
                 
                 const data = await response.json();
                 console.log(`API Response Time: ${data.processing_time_ms} ms`);
-                displayResult(data.is_fraud, data.probability);
+                // Add data.summary to the function call
+                displayResult(data.is_fraud, data.probability, data.summary);
             } catch (error) {
                 console.error('Error connecting to API:', error);
                 alert("Failed to connect to the backend API. Is FastAPI running on port 8000?");
             }
         });
 
-        function displayResult(isFraud, probability) {
+        function displayResult(isFraud, probability, summary) {
             const resultDiv = document.getElementById('result');
             resultDiv.style.display = 'block';
             resultDiv.className = ''; 
@@ -677,7 +678,18 @@
             const percentStr = (probability * 100).toFixed(2) + '%';
             if (isFraud) {
                 resultDiv.classList.add('fraud');
-                resultDiv.innerHTML = `ALERT: Fraud Transaction Detected! (Risk Probability: ${percentStr})`;
+                let htmlContent = `ALERT: Fraud Transaction Detected! (Risk Probability: ${percentStr})`;
+                
+                // If the backend generated an AI summary, append it below the alert
+                if (summary) {
+                    htmlContent += `
+                        <div style="margin-top: 15px; text-align: left; background: rgba(185, 28, 28, 0.05); padding: 12px; border-radius: 6px; border: 1px solid rgba(185, 28, 28, 0.2); color: var(--text-color); font-weight: normal; font-size: 14px;">
+                            <strong style="color: #ef4444; display: block; margin-bottom: 5px;">AI Analysis Summary:</strong>
+                            ${summary}
+                        </div>
+                    `;
+                }
+                resultDiv.innerHTML = htmlContent;
             } else {
                 resultDiv.classList.add('safe');
                 resultDiv.innerHTML = `Transaction Approved. (Risk Probability: ${percentStr})`;

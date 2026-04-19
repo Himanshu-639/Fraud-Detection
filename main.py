@@ -7,6 +7,10 @@ import pandas as pd
 import time
 import io
 import os
+from dotenv import load_dotenv
+from langchain_groq import ChatGroq
+
+load_dotenv()
 
 # 1. Initialize the App
 app = FastAPI(title="Fraud Detection API")
@@ -19,6 +23,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+llm = ChatGroq(
+    model = "llama-3.3-70b-versatile",
+    temperature = 0,
+    groq_api_key = os.getenv("groq_api")
+)
+
 
 # 3. Load your trained model on startup
 print("Loading model...")
@@ -55,7 +67,7 @@ async def predict_fraud(transaction: TransactionInput):
         'newbalanceOrig': transaction.newbalanceOrig,
         'oldbalanceDest': transaction.oldbalanceDest,
         'newbalanceDest': transaction.newbalanceDest,
-        'type_CASH_IN': 0,      # Added this missing column!
+        'type_CASH_IN': 0,
         'type_CASH_OUT': 0,
         'type_DEBIT': 0,
         'type_PAYMENT': 0,
@@ -86,12 +98,53 @@ async def predict_fraud(transaction: TransactionInput):
     end_time = time.perf_counter()
     processing_time_ms = round((end_time - start_time) * 1000, 2)
 
-    return {
+    summary = None
+
+    if probability > 0.75:
+        prompt = f"""You are a fraud detection analyst. Analyze this transaction and provide a clear, professional summary.
+
+ANALYSIS RESULTS:
+- Fraud Probability: {probability*100:.2f}%
+- Decision: {"FRAUD DETECTED"}
+- Risk Level: {"HIGH"}
+
+TRANSACTION DETAILS:
+- Amount: ${transaction.amount:,.2f}
+- Type: {transaction.type_txn.upper()}
+- Account Balance Before: ${transaction.oldbalanceOrg:,.2f}
+- Account Balance After: ${transaction.newbalanceOrig:,.2f}
+- Destination Balance Before: ${transaction.oldbalanceDest:,.2f}
+- Destination Balance After: ${transaction.newbalanceDest:,.2f}
+- New Destination: {"Yes" if transaction.is_dest_new == 1 else "No"}
+- Hours Since Last Transaction: {transaction.recency_hours}
+- Transactions in Last 24h: {transaction.txn_count_24hr}
+
+Provide a 2-3 sentence professional summary explaining why this transaction is {"flagged as fraud"}. Focus on the key risk indicators."""
+
+        try:
+            response = llm.invoke(
+                [
+                    {"role": "system", "content": "You are a financial fraud detection expert."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            summary = response.content.strip()
+
+        except Exception as e:
+            summary = f"Error generating summary: {str(e)}"
+
+    response_data = {
         "is_fraud": is_fraud,
         "probability": probability,
         "processing_time_ms": processing_time_ms
     }
 
+    if summary is not None:
+        response_data["summary"] = summary
+
+    return response_data
+
+    
 @app.post("/predict_batch")
 async def predict_batch_fraud(file: UploadFile = File(...)):
     start_time = time.perf_counter()
