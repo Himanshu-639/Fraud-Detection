@@ -2,3 +2,4 @@ __pycache__/
 *.csv
 test_chunks/
 .env
+Scores.txt

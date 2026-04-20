@@ -34,7 +34,7 @@ llm = ChatGroq(
 
 # 3. Load your trained model on startup
 print("Loading model...")
-model = joblib.load("fraud_detection_model.pkl")
+model = joblib.load("fraud_detection_model2.pkl")
 print("Model loaded successfully!")
 
 # 4. Define the expected incoming JSON structure
@@ -106,7 +106,7 @@ async def predict_fraud(transaction: TransactionInput):
 ANALYSIS RESULTS:
 - Fraud Probability: {probability*100:.2f}%
 - Decision: {"FRAUD DETECTED"}
-- Risk Level: {"HIGH"}
+- Risk Level: {"HIGH" if probability > 0.75 else "MEDIUM"}
 
 TRANSACTION DETAILS:
 - Amount: ${transaction.amount:,.2f}
@@ -115,9 +115,9 @@ TRANSACTION DETAILS:
 - Account Balance After: ${transaction.newbalanceOrig:,.2f}
 - Destination Balance Before: ${transaction.oldbalanceDest:,.2f}
 - Destination Balance After: ${transaction.newbalanceDest:,.2f}
-- New Destination: {"Yes" if transaction.is_dest_new == 1 else "No"}
-- Hours Since Last Transaction: {transaction.recency_hours}
-- Transactions in Last 24h: {transaction.txn_count_24hr}
+- Is Destination New: {"Yes" if transaction.is_dest_new == 1 else "No"}
+- Hours Since Last Transaction(from Originator): {transaction.recency_hours}
+- Transactions in Last 24h(from Originator): {transaction.txn_count_24hr}
 
 Provide a 2-3 sentence professional summary explaining why this transaction is {"flagged as fraud"}. Focus on the key risk indicators."""
 
